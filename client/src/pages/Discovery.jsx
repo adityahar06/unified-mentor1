@@ -1,8 +1,13 @@
 import { useState } from 'react';
-import { Star, Filter, MessageSquare } from 'lucide-react';
+import { Star, Filter, MessageSquare, Loader2 } from 'lucide-react';
 
 export default function Discovery() {
   const [activeTab, setActiveTab] = useState('products');
+  const [reviewText, setReviewText] = useState('');
+  const [sentiment, setSentiment] = useState(null);
+  const [analyzing, setAnalyzing] = useState(false);
+
+  const API = 'http://localhost:5000/api';
 
   // Mock data for display
   const products = [
@@ -11,6 +16,33 @@ export default function Discovery() {
     { id: 3, name: 'Custom Cotton Shirt', entrepreneur: 'Meera Tailors', category: 'Tailoring', price: 850, rating: 4.9 },
   ];
 
+  const handleAnalyze = async () => {
+    if (!reviewText.trim()) return;
+    setAnalyzing(true);
+    setSentiment(null);
+    try {
+      const res = await fetch(`${API}/dl/analyze-review`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: reviewText })
+      });
+      const data = await res.json();
+      setSentiment(data);
+    } catch {
+      setSentiment({ sentiment_prediction: 'error', message: 'Could not connect to server' });
+    }
+    setAnalyzing(false);
+  };
+
+  const getSentimentColor = (s) => {
+    if (!s) return '';
+    const val = s.toLowerCase();
+    if (val.includes('positive')) return 'text-emerald-700 bg-emerald-50 border-emerald-200';
+    if (val.includes('negative')) return 'text-red-700 bg-red-50 border-red-200';
+    if (val.includes('error')) return 'text-red-700 bg-red-50 border-red-200';
+    return 'text-amber-700 bg-amber-50 border-amber-200';
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
@@ -18,15 +50,15 @@ export default function Discovery() {
           <h1 className="text-3xl font-bold text-gray-900">Marketplace & Services</h1>
           <p className="text-gray-500 mt-1">Discover local talent and handmade goods.</p>
         </div>
-        
+
         <div className="flex bg-gray-100 p-1 rounded-lg">
-          <button 
+          <button
             onClick={() => setActiveTab('products')}
             className={`px-6 py-2 rounded-md font-medium transition-colors ${activeTab === 'products' ? 'bg-white shadow-sm text-purple-700' : 'text-gray-600 hover:text-gray-900'}`}
           >
             Buy Products
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('services')}
             className={`px-6 py-2 rounded-md font-medium transition-colors ${activeTab === 'services' ? 'bg-white shadow-sm text-purple-700' : 'text-gray-600 hover:text-gray-900'}`}
           >
@@ -43,7 +75,7 @@ export default function Discovery() {
               <Filter className="w-5 h-5 text-purple-600" />
               Filters
             </div>
-            
+
             <div className="space-y-6">
               <div>
                 <h3 className="text-sm font-medium text-gray-900 mb-3">Categories</h3>
@@ -56,7 +88,7 @@ export default function Discovery() {
                   ))}
                 </div>
               </div>
-              
+
               <div>
                 <h3 className="text-sm font-medium text-gray-900 mb-3">Price Range</h3>
                 <input type="range" className="w-full accent-purple-600" />
@@ -74,15 +106,18 @@ export default function Discovery() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map(product => (
               <div key={product.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all group">
-                <div className="h-48 bg-gray-200 relative overflow-hidden flex items-center justify-center text-gray-400">
-                  {/* Placeholder for image */}
-                  No Image Available
+                <div className="h-48 bg-gradient-to-br from-purple-50 to-indigo-50 relative overflow-hidden flex items-center justify-center">
+                  <span className="text-5xl">
+                    {product.category === 'Pottery' && '🏺'}
+                    {product.category === 'Cobbler' && '👞'}
+                    {product.category === 'Tailoring' && '👔'}
+                  </span>
                 </div>
                 <div className="p-5">
                   <div className="text-xs font-semibold text-purple-600 mb-1 uppercase tracking-wider">{product.category}</div>
                   <h3 className="font-bold text-gray-900 text-lg mb-1">{product.name}</h3>
                   <p className="text-sm text-gray-500 mb-4">by {product.entrepreneur}</p>
-                  
+
                   <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-50">
                     <span className="text-xl font-bold text-gray-900">₹{product.price}</span>
                     <div className="flex items-center gap-1 text-amber-500 text-sm font-medium">
@@ -94,24 +129,36 @@ export default function Discovery() {
               </div>
             ))}
           </div>
-          
-          {/* Basic DL Demo Box (Mock UI for the backend DL feature) */}
+
+          {/* Basic DL Demo Box - Connected to Backend */}
           <div className="mt-12 bg-purple-50 rounded-2xl p-6 border border-purple-100">
             <h3 className="flex items-center gap-2 font-bold text-purple-900 mb-2">
               <MessageSquare className="w-5 h-5" />
-              AI Review Analysis
+              AI Review Analysis (Deep Learning)
             </h3>
             <p className="text-sm text-purple-800 mb-4">
-              Try our Basic Deep Learning Sentiment Analysis. Enter a review below to see if our model classifies it as Positive or Negative.
+              Try our basic Deep Learning Sentiment Analysis powered by brain.js. Enter a review below to see if our LSTM neural network classifies it as Positive, Negative, or Neutral.
             </p>
             <div className="flex gap-2">
-              <input type="text" placeholder="e.g. 'Amazing handmade quality!'" className="flex-1 rounded-lg border-purple-200 shadow-sm focus:border-purple-500 focus:ring-purple-500 px-4 py-2" />
-              <button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm">
-                Analyze
+              <input type="text" value={reviewText} onChange={e => setReviewText(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleAnalyze()}
+                placeholder="e.g. 'Amazing handmade quality!'"
+                className="flex-1 rounded-lg border border-purple-200 shadow-sm focus:border-purple-500 focus:ring-purple-500 px-4 py-2" />
+              <button onClick={handleAnalyze} disabled={analyzing}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2">
+                {analyzing ? <><Loader2 className="w-4 h-4 animate-spin" /> Analyzing...</> : 'Analyze'}
               </button>
             </div>
-          </div>
 
+            {sentiment && (
+              <div className={`mt-4 p-4 rounded-xl border ${getSentimentColor(sentiment.sentiment_prediction)}`}>
+                <p className="font-semibold text-lg capitalize">
+                  Sentiment: {sentiment.sentiment_prediction}
+                </p>
+                <p className="text-sm mt-1 opacity-80">{sentiment.message}</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

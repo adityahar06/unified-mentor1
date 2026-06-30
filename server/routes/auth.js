@@ -4,6 +4,30 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+// Middleware to verify token
+const auth = (req, res, next) => {
+  const token = req.header('x-auth-token');
+  if (!token) return res.status(401).json({ msg: 'No token, authorization denied' });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded.user;
+    next();
+  } catch (err) {
+    res.status(401).json({ msg: 'Token is not valid' });
+  }
+};
+
+// Get logged-in user info
+router.get('/user', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    res.json(user);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 // Register
 router.post('/register', async (req, res) => {
   const { name, email, password, role, skillType, servicesOffered } = req.body;
@@ -20,7 +44,10 @@ router.post('/register', async (req, res) => {
     const payload = { user: { id: user.id, role: user.role } };
     jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 360000 }, (err, token) => {
       if (err) throw err;
-      res.json({ token });
+      res.json({
+        token,
+        user: { id: user.id, name: user.name, email: user.email, role: user.role, skillType: user.skillType }
+      });
     });
   } catch (err) {
     console.error(err.message);
@@ -41,7 +68,10 @@ router.post('/login', async (req, res) => {
     const payload = { user: { id: user.id, role: user.role } };
     jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 360000 }, (err, token) => {
       if (err) throw err;
-      res.json({ token });
+      res.json({
+        token,
+        user: { id: user.id, name: user.name, email: user.email, role: user.role, skillType: user.skillType }
+      });
     });
   } catch (err) {
     console.error(err.message);
