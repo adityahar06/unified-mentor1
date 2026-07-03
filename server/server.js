@@ -1,23 +1,30 @@
 const express = require('express');
+const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
-require('dotenv').config();
+
+dotenv.config();
+
+// Connect to database
+connectDB();
 
 const app = express();
-
-// Connect Database
-connectDB();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Define Routes
+// Routes
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/dl', require('./routes/dl'));
-app.use('/api/products', require('./routes/products'));
-app.use('/api/services', require('./routes/services'));
+app.use('/api/entrepreneurs', require('./routes/entrepreneurs'));
+app.use('/api/reviews', require('./routes/reviews'));
+
+app.get('/', (req, res) => {
+  res.send('API is running...');
+});
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
