@@ -10,7 +10,18 @@ const createReview = async (req, res) => {
     const { targetId, targetModel, rating, comment } = req.body;
     const userId = req.user._id;
 
-    // Call Hugging Face API (or local simulation fallback) for sentiment analysis
+    // Check if the user is trying to review themselves
+    if (targetModel === 'Entrepreneur') {
+      const entrepreneur = await Entrepreneur.findById(targetId);
+      if (!entrepreneur) {
+        return res.status(404).json({ message: 'Entrepreneur not found' });
+      }
+      if (entrepreneur.userId.toString() === userId.toString()) {
+        return res.status(403).json({ message: 'You cannot review your own profile' });
+      }
+    }
+
+    // Call Groq/Hugging Face API (or local simulation fallback) for sentiment analysis
     const sentimentResult = await analyzeSentiment(comment);
     
     let sentimentLabel = sentimentResult.label;

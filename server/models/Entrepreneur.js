@@ -12,8 +12,8 @@ const entrepreneurSchema = new mongoose.Schema(
     experience: { type: Number, default: 0 }, // in years
     gallery: [{ type: String }], // array of image URLs
     verified: { type: Boolean, default: false },
-    starRating: { type: Number, default: 0 },
-    trustRating: { type: Number, default: 0 },
+    starRating: { type: Number, default: 3 },
+    trustRating: { type: Number, default: 3 },
   },
   { timestamps: true }
 );

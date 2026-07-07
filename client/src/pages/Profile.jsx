@@ -57,7 +57,11 @@ const Profile = () => {
       setEntrepreneur(updatedEnt.data);
     } catch (err) {
       console.error(err);
-      alert('Must be logged in to review (for this demo, login as Customer John)');
+      if (err.response && err.response.status === 403) {
+        alert("You cannot write a review for your own profile as you are this entrepreneur!");
+      } else {
+        alert('Must be logged in to review (for this demo, login as Customer John)');
+      }
       setSubmitting(false);
     }
   };
