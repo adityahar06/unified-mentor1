@@ -25,7 +25,7 @@ const Directory = () => {
     const fetchEntrepreneurs = async () => {
       try {
         // In a real app, use the actual backend URL from env
-        const { data } = await axios.get('http://localhost:5000/api/entrepreneurs');
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/entrepreneurs`);
         setEntrepreneurs(data);
         setLoading(false);
       } catch (err) {

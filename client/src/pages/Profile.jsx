@@ -18,8 +18,8 @@ const Profile = () => {
     const fetchData = async () => {
       try {
         const [entRes, revRes] = await Promise.all([
-          axios.get(`http://localhost:5000/api/entrepreneurs/${id}`),
-          axios.get(`http://localhost:5000/api/reviews/${id}`)
+          axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/entrepreneurs/${id}`),
+          axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/reviews/${id}`)
         ]);
         setEntrepreneur(entRes.data);
         setReviews(revRes.data);
@@ -42,7 +42,7 @@ const Profile = () => {
       const token = localStorage.getItem('token');
       
       const res = await axios.post(
-        'http://localhost:5000/api/reviews',
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/reviews`,
         { targetId: id, targetModel: 'Entrepreneur', rating, comment },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -53,7 +53,7 @@ const Profile = () => {
       setSubmitting(false);
       
       // Refresh entrepreneur to get updated trust rating
-      const updatedEnt = await axios.get(`http://localhost:5000/api/entrepreneurs/${id}`);
+      const updatedEnt = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/entrepreneurs/${id}`);
       setEntrepreneur(updatedEnt.data);
     } catch (err) {
       console.error(err);
